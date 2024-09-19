@@ -242,38 +242,4 @@ class BookController extends Controller
         ]);
     }
 
-//    /**
-//     * Function to mark rentals as overdue automatically.
-//     */
-//    public function markOverdueRentals(): JsonResponse
-//    {
-//
-//    }
-
-//    public function sendEmailNotificationsToUsersForOverdue()
-//    {
-//        // for mailing
-//        $getOverdueRecordsForEMail = BookRental::where('status',1) // Book is still booked and not returned
-//                                ->whereDate('till_date', '<', Carbon::today())
-//                                ->with(['user','book'])
-//                                ->get();
-//
-//        if(count($getOverdueRecordsForEMail) > 0) {
-//            foreach ($getOverdueRecordsForEMail as $bookData) {
-//                if($bookData->is_overdue === 0 ) {
-//                    $bookData->is_overdue = true;
-//                    $bookData->update();
-//                }
-//
-//                Mail::to($bookData->user->email)->send(new BookOverdueNotificationMail($bookData));
-//            }
-//        }
-//
-//
-//        return response()->json([
-//            'success'   => true,
-//            'message'   => 'Email has been dispatched.'
-//        ]);
-//    }
-
 }

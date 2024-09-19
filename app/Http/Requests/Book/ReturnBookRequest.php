@@ -2,9 +2,9 @@
 
 namespace App\Http\Requests\Book;
 
-use Illuminate\Foundation\Http\FormRequest;
+use App\Http\Requests\BaseFormRequest;
 
-class ReturnBookRequest extends FormRequest
+class ReturnBookRequest extends BaseFormRequest
 {
     /**
      * Determine if the user is authorized to make this request.

@@ -10,8 +10,6 @@ Route::prefix('v1/book')->namespace('App\Http\Controllers\Api\v1')->group(functi
     Route::post('/return-book', [BookController::class, 'returnBook']);
     Route::get('/view-rental-history', [BookController::class, 'viewRentalHistory']);
     Route::get('/book-stats', [BookController::class, 'getBookRentalStats']);
-    //    Route::get('/mark-overdue-rentals', [BookController::class, 'markOverdueRentals']);
-//    Route::get('/send-overdue-email', [BookController::class, 'sendEmailNotificationsToUsersForOverdue']);
 });
 
 

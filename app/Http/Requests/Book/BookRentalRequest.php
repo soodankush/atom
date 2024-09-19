@@ -38,21 +38,6 @@ class BookRentalRequest extends BaseFormRequest
             'book_id'   => 'required|exists:books,id',
             'user_id'   => 'required|exists:users,id',
             'from_date' => 'required|date|date_format:Y-m-d H:i:s',
-//            'till_date' => [
-//                'required',
-//                'date',
-//                'date_format:Y-m-d H:i:s',
-//                'after:from_date',
-//                'after:now',
-//                function ($attribute, $value, $fail) {
-//                    $fromDate = Carbon::createFromFormat('Y-m-d H:i:s', $this->input('from_date'));
-//                    $tillDate = Carbon::createFromFormat('Y-m-d H:i:s', $value);
-//                    $maxTillDate = $fromDate->copy()->addWeeks(2);
-//                    if ($tillDate->greaterThan($maxTillDate)) {
-//                        $fail('The till date must not be more than two weeks.');
-//                    }
-//                },
-//            ],
         ];
     }
 
@@ -61,8 +46,6 @@ class BookRentalRequest extends BaseFormRequest
         return [
             'book_id.required'  => 'Please mention book',
             'user_id.required'  => 'Please mention user',
-//            'till_date.after' => 'The till date must be after the from date and a future date.',
-//            'till_date.after:now' => 'The till date must be a future date.',
         ];
     }
 
