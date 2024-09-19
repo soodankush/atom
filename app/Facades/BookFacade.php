@@ -3,7 +3,7 @@
 namespace App\Facades;
 
 use Illuminate\Support\Facades\Facade;
-class Book extends Facade
+class BookFacade extends Facade
 {
     protected static function getFacadeAccessor()
     {

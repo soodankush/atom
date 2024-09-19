@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api\V1;
 
+use App\Facades\BookFacade;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Book\BookRentalRequest;
 use App\Http\Requests\Book\ReturnBookRequest;
@@ -17,10 +18,7 @@ use Illuminate\Support\Facades\Mail;
 
 class BookController extends Controller
 {
-    public function __construct()
-    {
-
-    }
+    public function __construct(){}
 
     /**
      * Function to find the search results.
@@ -39,13 +37,7 @@ class BookController extends Controller
             ], Response::HTTP_BAD_REQUEST);
         }
 
-//        $searchResults = Book::getSearchResultsUsingTerm($inputSearchTerm);
-        $searchResults = Book::join('genres','books.genre_id', '=', 'genres.id')
-            ->join('authors', 'books.author_id', '=', 'authors.id')
-            ->where('books.title','LIKE' ,'%'. $inputSearchTerm .'%')
-            ->orWhere('genres.name', 'LIKE', '%' . $inputSearchTerm .'%')
-            ->select('books.title', 'books.isbn','authors.name as author','genres.name as genre')
-            ->get();;
+        $searchResults = BookFacade::getSearchResultsUsingTerm($inputSearchTerm);
 
         if(!count($searchResults)) {
             return response()->json([
@@ -72,19 +64,15 @@ class BookController extends Controller
         $validatedBookRequest = $request->validated();
 
         try{
-            $tillDate = Carbon::createFromFormat('Y-m-d H:i:s', $validatedBookRequest['from_date'])->copy()->addWeeks(2)->endOfDay();
+            $bookingData = BookFacade::rentBook($validatedBookRequest);
 
-            //check and verify if the same user has Booked the same book.
-
-            $bookingData = BookRental::create([
-                'book_id'   => $validatedBookRequest["book_id"],
-                'user_id'   => $validatedBookRequest["user_id"],
-                'from_date' => $validatedBookRequest["from_date"],
-                'till_date' => $tillDate,
-                'status'    => 1,
-                'is_overdue'=> false,
-            ]);
-
+            if(!$bookingData) {
+                return response()->json([
+                    'success'   => true,
+                    'message'   => 'User has already rented this book',
+                    'data'      => null
+                ]);
+            }
             $response = [
                 'book_name' => $bookingData->book->title,
                 'user_name' => $bookingData->user->name,
@@ -118,10 +106,7 @@ class BookController extends Controller
     {
         $validatedReturnData = $request->validated();
 
-        $fetchBookRentData = BookRental::where('book_id', $validatedReturnData['book_id'])
-                                        ->where('user_id', $validatedReturnData['user_id'])
-                                        ->where('status', 1)
-                                        ->first();
+        $fetchBookRentData = BookFacade::returnBook($validatedReturnData);
 
         if(!$fetchBookRentData) {
             return response()->json([
@@ -195,45 +180,11 @@ class BookController extends Controller
      */
     public function getBookRentalStats(): JsonResponse
     {
-        $mostOverdueBook = DB::table('book_rentals')
-            ->join('books', 'book_rentals.book_id', '=', 'books.id')
-            ->select(
-                'books.title as book_name',
-                'books.id as book_id',
-                DB::raw('MAX(DATEDIFF(NOW(), till_date)) as maximum_overdue_days')
-            )
-            ->where('status', 1)
-            ->where('is_overdue', 1)
-            ->groupBy('book_rentals.book_id')
-            ->orderBy('maximum_overdue_days', 'desc')
-            ->first();
+        $bookStatData['most_overdue_book'] = BookFacade::mostOverdueBook();
 
-        $mostPopularBook = DB::table('book_rentals')
-            ->join('books', 'book_rentals.book_id', '=', 'books.id')
-            ->select(
-                'books.title as book_name',
-                'books.id as book_id',
-                DB::raw('count(book_id) as book_count')
-            )
-            ->groupBy('book_rentals.book_id')
-            ->orderBy('book_count','desc')
-            ->first();
+        $bookStatData['most_popular_book'] = BookFacade::mostPopularBook();
 
-        $leastPopularBook = DB::table('book_rentals')
-            ->join('books', 'book_rentals.book_id', '=', 'books.id')
-            ->select(
-                'books.title as book_name',
-                'books.id as book_id',
-                DB::raw('SUM(DATEDIFF(return_date, from_date)) as booking_days')
-            )
-            ->where('status', 2) // Book has been returned
-            ->groupBy('book_rentals.book_id')
-            ->orderBy('booking_days','asc')
-            ->first();
-
-        $bookStatData['most_overdue_book'] = $mostOverdueBook;
-        $bookStatData['most_popular_book'] = $mostPopularBook;
-        $bookStatData['least_popular_book'] = $leastPopularBook;
+        $bookStatData['least_popular_book'] = BookFacade::leastPopularBook();
 
         return response()->json([
             'success'   => true,
